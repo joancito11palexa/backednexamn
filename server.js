@@ -18,7 +18,7 @@ app.post("/generate-text", async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     console.log(prompt)
     const result = await model.generateContent(prompt);
-    console.log("ya")
+    console.log("listo causa")
     res.json({ response: result.response.text() });
   } catch (error) {
     console.error("Error generating text:", error.message);
