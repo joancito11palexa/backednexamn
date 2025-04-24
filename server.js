@@ -16,7 +16,7 @@ app.use(
 );
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Endpoint para generar texto
 app.post("/generate-text", async (req, res) => {
@@ -24,7 +24,7 @@ app.post("/generate-text", async (req, res) => {
     const { prompt } = req.body; // El cliente enviará el texto como un prompt
 
     const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     console.log(prompt)
     const result = await model.generateContent(prompt);
     console.log("listo causa")
