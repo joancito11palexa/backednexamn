@@ -90,3 +90,111 @@ public class Exam {
         return m.find() ? m.group(1) : text;
     }
 }
+
+
+
+
+
+
+
+
+package exam;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Clipboard;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Exam {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Ingresa tu prompt: ");
+        String prompt = scanner.nextLine();
+        scanner.close();
+
+        String jsonBody = "{\"prompt\":\"" + escapeJson(prompt) + "\"}";
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://backednexamn.onrender.com/generate-text"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String rawJson = response.body();
+
+            // 1. Extraer la cadena 'response' interpretando escapes
+            String rawResponse = extractField(rawJson, "response");
+            
+            // 2. Extraer bloque entre ```java ... ``` si existe
+            String codeBlock = extractBetweenBackticks(rawResponse);
+
+            // 3. Mostrar el código completo y formateado
+            System.out.println("\n=== Código generado ===");
+            System.out.println(codeBlock);
+
+            // 4. Copiar al portapapeles automáticamente
+            copyToClipboard(codeBlock);
+            System.out.println("\n(Código copiado al portapapeles)");
+
+        } catch (Exception e) {
+            System.err.println("Error en la petición HTTP: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /** Copia texto al portapapeles del sistema */
+    private static void copyToClipboard(String text) {
+        StringSelection selection = new StringSelection(text);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, null);
+    }
+
+    private static String escapeJson(String text) {
+        return text.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+    }
+
+    private static String extractField(String json, String field) {
+        String key = "\"" + field + "\":";
+        int idx = json.indexOf(key);
+        if (idx < 0) return "";
+        int startQuote = json.indexOf('"', idx + key.length());
+        if (startQuote < 0) return "";
+        StringBuilder sb = new StringBuilder();
+        boolean esc = false;
+        for (int i = startQuote + 1; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '"' && !esc) break;
+            if (esc) {
+                switch (c) {
+                    case 'n': sb.append('\n'); break;
+                    case 't': sb.append('\t'); break;
+                    case 'r': sb.append('\r'); break;
+                    case '"': sb.append('"'); break;
+                    case '\\': sb.append('\\'); break;
+                    default: sb.append(c); break;
+                }
+                esc = false;
+            } else if (c == '\\') {
+                esc = true;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String extractBetweenBackticks(String text) {
+        Pattern p = Pattern.compile("```(?:java)?\\s*(.*?)```", Pattern.DOTALL);
+        Matcher m = p.matcher(text);
+        return m.find() ? m.group(1) : text;
+    }
+}
