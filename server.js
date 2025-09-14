@@ -14,20 +14,14 @@ app.use(
     origin: ["http://localhost:3000","http://192.168.0.109:3000"],
   })
 );
-
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
-// Endpoint para generar texto
 app.post("/generate-text", async (req, res) => {
   try {
-    const { prompt } = req.body; // El cliente enviará el texto como un prompt
-
-    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-    console.log(prompt)
+    const { prompt } = req.body;
     const result = await model.generateContent(prompt);
-    console.log("listo causa")
+    console.log(result.response.text() )
     res.json({ response: result.response.text() });
   } catch (error) {
     console.error("Error generating text:", error.message);
