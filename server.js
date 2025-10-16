@@ -15,7 +15,7 @@ app.use(
   })
 );
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
 app.post("/generate-text", async (req, res) => {
   try {
